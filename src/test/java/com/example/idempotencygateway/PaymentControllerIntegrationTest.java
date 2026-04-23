@@ -68,6 +68,8 @@ class PaymentControllerIntegrationTest {
 
         assertThat(firstResult.getResponse().getContentAsString()).isEqualTo("Charged 100 USD");
         assertThat(secondResult.getResponse().getContentAsString()).isEqualTo("Charged 100 USD");
+        assertThat(firstResult.getResponse().getHeader("Location")).isEqualTo("/process-payment/payment-123");
+        assertThat(secondResult.getResponse().getHeader("Location")).isEqualTo("/process-payment/payment-123");
         assertThat(firstDuration).isGreaterThanOrEqualTo(150L);
         assertThat(secondDuration).isLessThan(firstDuration);
     }
