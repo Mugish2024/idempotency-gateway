@@ -16,8 +16,8 @@
 
 ```json
 {
-  "amount": 100,
-  "currency": "USD"
+  "amount": 5000,
+  "currency": "RWF"
 }
 ```
 
@@ -44,7 +44,7 @@ sequenceDiagram
     API->>Store: Find existing key in PROCESSING
     API->>API: Wait for first request to finish
     API->>Store: Save response as COMPLETED
-    API-->>ClientA: 201 Created + Charged 100 USD
+    API-->>ClientA: 201 Created + Charged 5000 RWF
     API-->>ClientB: 201 Created + X-Cache-Hit: true
 ```
 
@@ -53,28 +53,28 @@ sequenceDiagram
 ### 1. First request
 
 ```bash
-curl -i -X POST http://localhost:8080/process-payment ^
+curl -i -X POST http://localhost:8083/process-payment ^
   -H "Content-Type: application/json" ^
-  -H "Idempotency-Key: payment-123" ^
-  -d "{\"amount\":100,\"currency\":\"USD\"}"
+  -H "Idempotency-Key: payment-rwf-001" ^
+  -d "{\"amount\":5000,\"currency\":\"RWF\"}"
 ```
 
 Example response:
 
 ```http
 HTTP/1.1 201 Created
-Location: /process-payment/payment-123
+Location: /process-payment/payment-rwf-001
 
-Charged 100 USD
+Charged 5000 RWF
 ```
 
 ### 2. Same key and same body
 
 ```bash
-curl -i -X POST http://localhost:8080/process-payment ^
+curl -i -X POST http://localhost:8083/process-payment ^
   -H "Content-Type: application/json" ^
-  -H "Idempotency-Key: payment-123" ^
-  -d "{\"amount\":100,\"currency\":\"USD\"}"
+  -H "Idempotency-Key: payment-rwf-001" ^
+  -d "{\"amount\":5000,\"currency\":\"RWF\"}"
 ```
 
 Example response:
@@ -83,16 +83,16 @@ Example response:
 HTTP/1.1 201 Created
 X-Cache-Hit: true
 
-Charged 100 USD
+Charged 5000 RWF
 ```
 
 ### 3. Same key and different body
 
 ```bash
-curl -i -X POST http://localhost:8080/process-payment ^
+curl -i -X POST http://localhost:8083/process-payment ^
   -H "Content-Type: application/json" ^
-  -H "Idempotency-Key: payment-123" ^
-  -d "{\"amount\":250,\"currency\":\"EUR\"}"
+  -H "Idempotency-Key: payment-rwf-001" ^
+  -d "{\"amount\":7000,\"currency\":\"RWF\"}"
 ```
 
 Example response:
@@ -124,6 +124,28 @@ Properties:
 ```bash
 mvn spring-boot:run
 ```
+
+The service is configured to run on `http://localhost:8083`.
+
+## Postman Testing
+
+Use the following request in Postman:
+
+- Method: `POST`
+- URL: `http://localhost:8083/process-payment`
+- Headers:
+  - `Content-Type: application/json`
+  - `Idempotency-Key: payment-rwf-001`
+- Raw JSON body:
+
+```json
+{
+  "amount": 5000,
+  "currency": "RWF"
+}
+```
+
+Repeat the same request to confirm the cached replay, then change the amount while keeping the same key to verify the conflict response.
 
 ## Running Tests
 
