@@ -95,6 +95,16 @@ class PaymentControllerIntegrationTest {
     }
 
     @Test
+    void missingIdempotencyKeyReturnsBadRequest() throws Exception {
+        String body = objectMapper.writeValueAsString(new PaymentRequest(5000, "RWF"));
+
+        mockMvc.perform(post("/process-payment")
+                        .contentType("application/json")
+                        .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void concurrentRequestsWithSameKeyShareOneProcessingResult() throws ExecutionException, InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
         PaymentRequest paymentRequest = new PaymentRequest(300, "ZAR");
