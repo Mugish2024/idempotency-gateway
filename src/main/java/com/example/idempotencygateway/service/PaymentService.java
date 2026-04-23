@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class PaymentService {
 
     private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
+    private static final String CACHE_HIT_HEADER = "X-Cache-Hit";
 
     private final ConcurrentHashMap<String, StoredRequest> requestStore = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
@@ -64,9 +65,12 @@ public class PaymentService {
 
             if (existingEntry.getStatus() == RequestStatus.COMPLETED) {
                 logger.info("Returning cached payment response for key {}", idempotencyKey);
-                return ResponseEntity.status(existingEntry.getResponseStatus())
-                        .header("X-Cache-Hit", "true")
-                        .body(existingEntry.getResponse());
+                ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(existingEntry.getResponseStatus())
+                        .header(CACHE_HIT_HEADER, "true");
+                if (existingEntry.getLocation() != null) {
+                    responseBuilder.header(HttpHeaders.LOCATION, existingEntry.getLocation());
+                }
+                return responseBuilder.body(existingEntry.getResponse());
             }
 
             requestStore.remove(idempotencyKey, existingEntry);
@@ -81,10 +85,11 @@ public class PaymentService {
             logger.info("Processing payment for key {}", idempotencyKey);
             TimeUnit.MILLISECONDS.sleep(processingDelayMs);
             String response = "Charged %d %s".formatted(paymentRequest.getAmount(), paymentRequest.getCurrency());
-            storedRequest.markCompleted(response, HttpStatus.CREATED);
+            String location = "/process-payment/" + idempotencyKey;
+            storedRequest.markCompleted(response, HttpStatus.CREATED, location);
 
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.LOCATION, "/process-payment/" + idempotencyKey);
+            headers.add(HttpHeaders.LOCATION, location);
             return new ResponseEntity<>(response, headers, HttpStatus.CREATED);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();

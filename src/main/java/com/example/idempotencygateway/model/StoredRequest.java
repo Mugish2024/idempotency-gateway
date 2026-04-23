@@ -13,6 +13,7 @@ public class StoredRequest {
     private volatile RequestStatus status;
     private volatile String response;
     private volatile HttpStatus responseStatus;
+    private volatile String location;
     private volatile Instant completedAt;
 
     public StoredRequest(String originalRequestBody, RequestStatus status) {
@@ -48,9 +49,14 @@ public class StoredRequest {
         return completedAt;
     }
 
-    public void markCompleted(String response, HttpStatus responseStatus) {
+    public String getLocation() {
+        return location;
+    }
+
+    public void markCompleted(String response, HttpStatus responseStatus, String location) {
         this.response = response;
         this.responseStatus = responseStatus;
+        this.location = location;
         this.status = RequestStatus.COMPLETED;
         this.completedAt = Instant.now();
         this.completionLatch.countDown();
