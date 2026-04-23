@@ -3,6 +3,8 @@ package com.example.idempotencygateway.controller;
 import com.example.idempotencygateway.model.PaymentRequest;
 import com.example.idempotencygateway.service.PaymentService;
 
+import jakarta.validation.Valid;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +24,7 @@ public class PaymentController {
     @PostMapping(value = "/process-payment", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> processPayment(
             @RequestHeader("Idempotency-Key") String idempotencyKey,
-            @RequestBody PaymentRequest paymentRequest) {
+            @Valid @RequestBody PaymentRequest paymentRequest) {
         return paymentService.processPayment(idempotencyKey, paymentRequest);
     }
 }
