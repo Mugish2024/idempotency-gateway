@@ -102,6 +102,38 @@ class PaymentControllerIntegrationTest {
 
         mockMvc.perform(post("/process-payment")
                         .contentType("application/json")
+                .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void invalidAmountReturnsBadRequest() throws Exception {
+        String body = """
+                {
+                  "amount": 0,
+                  "currency": "RWF"
+                }
+                """;
+
+        mockMvc.perform(post("/process-payment")
+                        .header("Idempotency-Key", "payment-invalid-amount")
+                        .contentType("application/json")
+                        .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void blankCurrencyReturnsBadRequest() throws Exception {
+        String body = """
+                {
+                  "amount": 5000,
+                  "currency": ""
+                }
+                """;
+
+        mockMvc.perform(post("/process-payment")
+                        .header("Idempotency-Key", "payment-invalid-currency")
+                        .contentType("application/json")
                         .content(body))
                 .andExpect(status().isBadRequest());
     }
