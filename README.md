@@ -127,6 +127,21 @@ mvn spring-boot:run
 
 The service is configured to run on `http://localhost:8083`.
 
+## Render Deployment
+
+This project includes a `Dockerfile` for Render deployment.
+
+Recommended Render settings:
+
+- Runtime: `Docker`
+- Branch: `main`
+- Root Directory: leave blank
+- Build Command: leave blank when using Docker
+- Start Command: leave blank when using Docker
+- Instance Type: `Free`
+
+The application reads Render's `PORT` environment variable automatically.
+
 ## Postman Testing
 
 Use the following request in Postman:
